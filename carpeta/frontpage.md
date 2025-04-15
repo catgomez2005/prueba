@@ -9,7 +9,7 @@
 • Transcripción del enunciado.
 • Hipótesis de trabajo que surgen luego de leer el enunciado\
 
-##Formato para bloque de codigo
+##Formato para bloque de codigo\
 '''
 #include <stdio.h>
 int main()
