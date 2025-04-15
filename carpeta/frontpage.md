@@ -10,11 +10,8 @@
 • Hipótesis de trabajo que surgen luego de leer el enunciado\
 
 ##Formato para bloque de codigo\
-'''
-#include <stdio.h>
-int main()
-{
-    printf ("Version de C: %ld\n", __STDC_VERSION__);
-}
+```
 
-'''
+Este es un ejemplo de un bloque de código.
+
+```
