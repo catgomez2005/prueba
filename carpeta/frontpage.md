@@ -15,3 +15,9 @@
 Este es un ejemplo de un bloque de código.
 
 ```
+La salida de este programa fue: \
+```
+
+Version de C: 201112
+
+```
