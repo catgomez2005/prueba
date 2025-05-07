@@ -47,7 +47,12 @@ Algunas opciones útiles:
 gcc -E hello2.c -o hello2.i
 ```
 
-**Conclusiones**: No hubo ningún error. Se realizó el preprocesamiento correctamente y se incluyo las declaraciones de la bibloteca `stdio.h`. Además se eliminaron los comentarios (desaparecio el comentario medio).
+**Conclusiones**
+El archivo preprocesado se diferencia del archivo fuente, pues:<br> 
+- El preprocesador responde a la directiva #include <stdio.h>, incluyendo el contenido del header, es decir, los prototipos de las funciones de la librería estándar.<br>
+- Se reemplaza (no elimina) el comentario entre el tipo de dato int y la función main por un espacio en blanco.<br>
+Además, ignora los problemas sintácticos (la llave faltante que cierra la función main) y semánticos (la ausencia de la declaración de la función prontf) del archivo fuente. Esto se debe a que el preprocesador no conoce la sintáctica y la semántica de C.<br>
+
 
 3) Escribimos `hello3.c`.
 4) Análisis de la semántica:
