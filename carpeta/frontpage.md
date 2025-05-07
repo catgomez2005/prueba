@@ -1,13 +1,13 @@
-• Número de equipo.
-• Nombre del equipo (opcional).
-• Autores de la resolución:
-◦ Usuario github.
-◦ Legajo.
-◦ Apellido.
-◦ Nombre.
-• Número y título del trabajo.
-• Transcripción del enunciado.
-• Hipótesis de trabajo que surgen luego de leer el enunciado\
+• Número de equipo. <br>
+• Nombre del equipo (opcional). <br>
+• Autores de la resolución: <br>
+◦ Usuario github. <br>
+◦ Legajo. <br>
+◦ Apellido. <br>
+◦ Nombre. <br>
+• Número y título del trabajo. <br>
+• Transcripción del enunciado. <br>
+• Hipótesis de trabajo que surgen luego de leer el enunciado\ <br>
 
 ## Formato para bloque de codigo
 ```
