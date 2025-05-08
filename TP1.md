@@ -51,16 +51,22 @@ gcc -E hello2.c -o hello2.i
 El archivo preprocesado se diferencia del archivo fuente, pues:<br> 
 - El preprocesador responde a la directiva #include <stdio.h>, incluyendo el contenido del header, es decir, los prototipos de las funciones de la librería estándar.<br>
 - Se reemplaza (no elimina) el comentario entre el tipo de dato int y la función main por un espacio en blanco.<br>
+
 Además, ignora los problemas sintácticos (la llave faltante que cierra la función main) y semánticos (la ausencia de la declaración de la función prontf) del archivo fuente. Esto se debe a que el preprocesador no conoce la sintáctica y la semántica de C.<br>
 
 
 3) Escribimos `hello3.c`.
 4) Análisis de la semántica:
-   1) `int`: Tipo de retorno: printf devuelve un entero que representa el número de caracteres impresos, o un valor negativo si hay error.
-   2) `printf`: Nombre de la función, estándar en C, usada para imprimir en la salida estándar (stdout).
-   3) `const char *` Primer argumento: un puntero a una cadena constante (el formato), no modificable dentro de la función.
-   4) `restrict`:Indica que el puntero s es el único puntero que accede a esa región de memoria durante la ejecución de printf. Permite optimizaciones por parte del compilador.
-   5) `...`	Argumentos variádicos: permite pasar una cantidad indefinida de parámetros después de la cadena de formato, como en `printf("%d", x);`.
+```
+int printf(const char * restrict s, ...);
+```
+Es el prototipo de la función printf que recibe como argumento un puntero a un carácter s:<br>
+
+1) `int`: Indica que el valor de retorno es un entero
+2) `printf`: Nombre de la función, estándar en C, usada para imprimir en la salida estándar (stdout).
+3) `const char *` La palabra const es un calificador de tipo, en este caso, aplicado a un puntero a un char, que indica que no se puede modificar el caracter al que apunta. Esto sin embargo no me impide modificar el valor del puntero en sí
+4) `restrict s`:Con el calificador restrict me aseguro de que el puntero s no podrá ser modificado una vez que se inicializa.
+5) `...`	Argumentos variádicos: permite pasar una cantidad indefinida de parámetros después de la cadena de formato.
 
 **Conclusiones**: Al no estar el `#include <stdio.h>` no se incluyó la librería estándar lo que generó un archivo mucho más pequeño que incluia directivas de control de línea generadas por el preprocesador: 
 ```
@@ -90,8 +96,11 @@ El compilador regresa al archivo fuente original, y está comenzando la línea 1
 .\hello3.c:4:2: error: expected declaration or statement at end of input
 ```
 
-2) Para corregir el error lo que hicimos fue agregar `}` al final del archivo y corregir la declaración de la función a `prontf` (con solo la llave no fue suficiente).
+2) El primer error indica que la función prontf no fue declarada, lo pudimos resolver corrigiendo la declaración de la función en la 1era línea a `prontf`
+   El segundo error señala la ausencia del centinela, se soluciona agregando `}` al final del archivo
+
 3) El objetivo del código ensamblador es ser una representación de bajo nivel del programa que está más cercana al lenguaje máquina, pero todavía legible por humanos.
+
 4) Ensamblar `hello4.s` en `hello4.o`, no vincular. Este proceso sale y no genera ningún error.
 
 
@@ -104,11 +113,11 @@ D:/MSYS2/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-
 collect2.exe: error: ld returned 1 exit status
 ```
 
-2) Para la corrección cambiamos los `prontf` por `printf`, que en esta ocasión funciona correctamente. 
+2) Este error se debe a que en el proceso de vinculación, el linker responde a la llamada a prontf que se hace en hello4.o, buscando la función en la biblioteca estándar, sin embargo, al no encontrarla, falla el linkeo, no se genera el ejecutable.Para su corrección cambiamos los `prontf` por `printf`, función que si va a encontrar en la librería estándar. 
 
 3) Para ejecutarlo hicimos: `./hello5.exe`. Pero esto no imprimio el resultado que esperabamos sino que mostro: `La respuesta es 899871184`.
 
-**Análisis**: La respuesta no fue la esperada ya que no usamos correctamente la función `printf`, deberíamos pasarle el `resultado` que queríamos mostrar.
+**Análisis**: La respuesta no fue la esperada ya que la función printf no fue invocada correctamente, puesto que espera un número en decimal (esto se indica usando "%d"), el 42 almacenado en i, que nunca se pasa.
 
 ### Parte 4, Corrección del Bug
 
@@ -117,13 +126,14 @@ collect2.exe: error: ld returned 1 exit status
 ### Parte 5, Remoción del prototipo
 
 1) Escribimos la nueva variante `hello7.c`.
+
 2) En nuestro caso no se pudo compilar el archivo:
 
 Lo que nos llevó a responder las siguiente preguntas:
 
 1)  ¿Arroja error o warning? Arroja un error y un warning:
 
-El primero se debe a que estamos utilizando una función perteneciente a la biblioteca estándar, sin haberla incluido previamente y por eso nos arroja una nota sugiriendo incluirla. Además de un warning.
+El primero se debe a que estamos utilizando una función perteneciente a la biblioteca estándar, sin haberla incluido previamente y por eso nos sugiere incluirla. Además de un warning.
 
 ```powershell
    .\hello7.c:3:5: error: implicit declaration of function 'printf' [-Wimplicit-function-declaration]
@@ -143,7 +153,11 @@ El primero se debe a que estamos utilizando una función perteneciente a la bibl
 
 2)  ¿Qué es un prototipo y de qué maneras se puede generar? 
 
-El protipo se refiere a la declaración previa de una función que indica su firma. Se puede incluir manualmente o a través de un archivo `.h`.
+Un prototipo es la declaración de una función/procedimiento, se indica al principio de un programa, fuera de main, y debe indicar:
+- El valor que retorna (en caso de ser una función)
+- El o los parámetros que recibe, indicando el tipo de variable de cada uno y, si así se desea, sus identificadores
+Estos pueden ser expresados en una misma unidad de traducción o colocados en un archivo de cabecera (header) distinto que se incluye con la directiva `#include` en la etapa de preprocesamiento
+
 
 3)  ¿Qué es una declaración implícita de una función? 
 
@@ -151,32 +165,37 @@ Es la declaración de una función o variable sin especificar su tipo de retorno
 
 4)  ¿Qué indica la especificación?
 
-La especificación establece el **que** hace una función, pero no el como.
+La especificación de de C indica que para utilizar una función esta debe ser declarada previamente, se trata entonces de una especificación a nivel semántico.
 
 5)  ¿Cómo se comportan las principales implementaciones? 
 
-En general, los compiladores de C más utilizados hoy en día, como GCC (GNU Compiler Collection), Clang, y MSVC (Microsoft Visual C++), se adhieren al estándar C99 (o posteriores) con respecto a la declaración de funciones. Esto significa que, en la mayoría de los casos, emitirán un error cuando se encuentra una llamada a una función sin una declaración previa.
+En general, los compiladores de C más utilizados hoy en día, como GCC (GNU Compiler Collection), Clang, y MSVC (Microsoft Visual C++), se adhieren al estándar C99 (o posteriores) con respecto a la declaración de funciones. Esto significa que, en la mayoría de los casos, emitirán un error cuando se encuentra una llamada a una función sin una declaración previa.<br>
 GCC: Como vimos con el ejemplo de hello7.c, GCC produce un error (`implicit declaration of function`) y una advertencia (`incompatible implicit declaration of built-in function`). Por defecto, este error impedirá la generación del ejecutable. Sin embargo, GCC tiene opciones de compilación que pueden relajar esta restricción por compatibilidad con código antiguo, permitiendo que se genere el ejecutable con la suposición implícita (devolviendo `int`, argumentos sin tipo específico). Esto generalmente se desaconseja en código nuevo.
 
 6)  ¿Qué es una función built-in? 
 
 Son funciones que están integradas al compilador y que no requieren linkeo, en general suelen estar optimizadas.
 
-7)  ¿Conjeture la razón por la cual gcc se comporta como se comporta? ¿Va realmente contra la especificación?
+7)  Conjeture la razón por la cual gcc se comporta como se comporta ¿Va realmente contra la especificación?
 
 No necesariamente va contra la especificacion; El comportamiento de GCC parece estar motivado por un equilibrio entre la necesidad de adherirse a los estándares modernos de C para promover la seguridad y la portabilidad, y la practicidad de ayudar a los desarrolladores (incluyendo aquellos que trabajan con código más antiguo) a entender y corregir problemas. En el caso de la declaración implícita en código moderno, GCC se alinea con la especificación al emitir un error. Las advertencias y notas adicionales son parte de su esfuerzo por proporcionar diagnósticos útiles.
 
 ### Parte 6, Compilación Separada: Contratos y Módulos
 
 1) Creamos los archivos `hello8.c` y `studio1.c`.
-2) No pudimos compilar el archivo `hello8.c` ya que nos muestra el mismo error de antes (declaración implicita de la función). Por lo que tuvimos que agregar el prototipo de `prontf` e incluir `stdio.h` al archivo `studio1.c`. De esta forma logramos generar el ejecutable y comprobamos que la respuesta es correcta.
+
+2) No pudimos compilar el archivo `hello8.c` ya que nos muestra el mismo error de antes (declaración implicita de la función). Por lo que deberíamos que agregar el prototipo de `prontf` a `hello8.c` e incluir `stdio.h` al archivo `studio1.c` (así tiene acceso a la declaración de printf). De esta forma logramos generar el ejecutable y comprobamos que la respuesta es correcta.
 
 ```powershell
 gcc hello8.o studio1.o -o programa1
 ```
 
-3) Lo que ocurriría si eliminaramos parametros o agregaramos parametros en `prontf` es que habría un problema en la vinculación ya que no encuentra una función con esa firma, por lo tanto el programa dejaría de funcionar.
-4) Escribirmos el contrato `studio.h` y ambos archivos `hello9.c` y `studio2.c`. La ventaja que da incluir el contrato en los clientes y en el proveedor es que da la **libertad a ambas** partes de tomar decisiones independientes (como el tiempo de compilacion o algoritmos que se utilizan) simpre y cuando se respete el contrato.
+3) Si eliminamos o agregamos parámetros en `prontf` habría un problema en la vinculación, ya que el linker no encontraría una función con una declaración compatible a la que provee studio1.c, por lo tanto, la vinculación fallaría.
+
+4) Escribirmos el contrato `studio.h` y ambos archivos `hello9.c` y `studio2.c`.
+Cuando en contrato es incluido por ambas partes, es posible detectar errores **ANTES** del tiempo de ejecución, es decir, en **TIEMPO DE COMPILACIÓN**, tales como:
+- Una INVOCACIÓN INCORRECTA por parte del consumidor
+- Una DEFINICIÓN INCORRECTA por parte del proveedor
 
 ***
 
