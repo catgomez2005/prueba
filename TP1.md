@@ -207,6 +207,9 @@ Cuando en contrato es incluido por ambas partes, es posible detectar errores **A
 
 En C/C++, las bibliotecas agregan funcionalidad sin tener que reescribir código. Estas biblotecas son distribuibles, pero **pueden** ser portables dependiendo de si están bien adaptadas a distintos sistemas operativos.
 
+#### Tipos de Bibliotecas
+- **Estáticas**: Se integran directamente en el ejecutable durante la compilación.
+- **Dinámicas**: Se cargan en tiempo de ejecución, lo que permite compartirlas entre varios programas y reducir el tamaño del ejecutable.
 ##### Ventajas
 
 - Reutilización de código: Evitás escribir desde cero funciones comunes.
